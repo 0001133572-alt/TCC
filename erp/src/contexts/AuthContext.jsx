@@ -1,7 +1,16 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import api from '../services/api';
 
 const AuthContext = createContext(null);
+
+const MOCK_USERS = [
+  { id: 1, name: 'Administrador', email: 'admin@xsalgados.com', role: 'admin' },
+  { id: 2, name: 'Operador', email: 'operador@xsalgados.com', role: 'operador' },
+];
+
+const MOCK_PASSWORDS = {
+  'admin@xsalgados.com': 'admin123',
+  'operador@xsalgados.com': 'operador123',
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -22,22 +31,22 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      const { token, user } = response.data;
+    await new Promise(r => setTimeout(r, 500));
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setToken(token);
-      setUser(user);
-
+    const mockUser = MOCK_USERS.find(u => u.email === email);
+    if (mockUser && MOCK_PASSWORDS[email] === password) {
+      const fakeToken = 'mock-token-' + Date.now();
+      localStorage.setItem('token', fakeToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setToken(fakeToken);
+      setUser(mockUser);
       return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.error || 'Erro ao fazer login'
-      };
     }
+
+    return {
+      success: false,
+      message: 'Credenciais inválidas'
+    };
   };
 
   const logout = () => {
