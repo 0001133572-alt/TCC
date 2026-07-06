@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Search, Users, UserCheck, Crown, UserPlus, Plus, FileDown, Phone, MapPin,
+  Search, Users, UserCheck, UserPlus, Plus, FileDown, Phone, MapPin,
   Package, TrendingUp, Star, X, MoreVertical, Eye, Edit, ShoppingCart,
   History, FileText, Trash2, ChevronDown, ChevronUp, Filter, ArrowUpDown,
   ChevronRight, Mail, Calendar, CreditCard, StickyNote, XCircle
@@ -8,31 +8,30 @@ import {
 import './ClientesPage.css';
 
 const MOCK_CLIENTS = [
-  { id: 1, name: 'João Silva', phone: '(11) 99876-5432', cpf: '123.456.789-00', email: 'joao.silva@email.com', city: 'São Paulo', state: 'SP', street: 'Rua Augusta', number: 1250, complemento: 'Apto 42', cep: '01304-000', status: 'ativo', vip: false, total_pedidos: 12, total_gasto: 2450.00, ultima_compra: '2026-06-28T14:30:00', pagamento_preferido: 'PIX', observacoes: 'Cliente fiel, sempre elogia os produtos.', favorites: [{ name: 'Hambúrguer Artesanal', count: 5 }, { name: 'Combo Família', count: 3 }], created_at: '2025-01-15T10:00:00' },
-  { id: 2, name: 'Maria Oliveira', phone: '(31) 98765-4321', cpf: '987.654.321-00', email: 'maria.oliveira@email.com', city: 'Belo Horizonte', state: 'MG', street: 'Rua da Bahia', number: 450, complemento: 'Sala 101', cep: '30160-010', status: 'vip', vip: true, total_pedidos: 25, total_gasto: 5890.00, ultima_compra: '2026-06-30T18:45:00', pagamento_preferido: 'Cartão de Crédito', observacoes: 'Compra toda semana. Prefere entrega noturna.', favorites: [{ name: 'Pizza Margherita', count: 8 }, { name: 'Açaí 500ml', count: 6 }], created_at: '2024-11-20T10:00:00' },
-  { id: 3, name: 'Pedro Henrique', phone: '(21) 99765-4321', cpf: '456.789.123-00', email: 'pedro.henrique@email.com', city: 'Rio de Janeiro', state: 'RJ', street: 'Rua das Laranjeiras', number: 300, complemento: '', cep: '22240-000', status: 'ativo', vip: false, total_pedidos: 15, total_gasto: 3200.00, ultima_compra: '2026-06-27T19:00:00', pagamento_preferido: 'Dinheiro', observacoes: '', favorites: [{ name: 'Combo Família', count: 6 }, { name: 'Batata Frita', count: 5 }], created_at: '2025-03-10T10:00:00' },
-  { id: 4, name: 'Ana Paula Costa', phone: '(41) 99876-1234', cpf: '321.654.987-00', email: 'ana.paula@email.com', city: 'Curitiba', state: 'PR', street: 'Rua XV de Novembro', number: 780, complemento: 'Casa', cep: '80020-310', status: 'novo', vip: false, total_pedidos: 3, total_gasto: 380.00, ultima_compra: '2026-06-22T17:20:00', pagamento_preferido: 'PIX', observacoes: 'Cliente novo, primeira compra em junho.', favorites: [{ name: 'Açaí 500ml', count: 2 }], created_at: '2026-06-01T10:00:00' },
-  { id: 5, name: 'Carlos Eduardo', phone: '(51) 99654-3210', cpf: '654.321.987-00', email: 'carlos.eduardo@email.com', city: 'Porto Alegre', state: 'RS', street: 'Rua dos Andradas', number: 1100, complemento: 'Loja 3', cep: '90020-007', status: 'vip', vip: true, total_pedidos: 32, total_gasto: 8100.00, ultima_compra: '2026-06-29T20:45:00', pagamento_preferido: 'Cartão de Débito', observacoes: 'Maior cliente do mês. Sempre compra combos.', favorites: [{ name: 'Combo Família', count: 12 }, { name: 'Pizza Margherita', count: 8 }], created_at: '2024-08-05T10:00:00' },
-  { id: 6, name: 'Fernanda Souza', phone: '(71) 99543-2109', cpf: '789.123.456-00', email: 'fernanda.souza@email.com', city: 'Salvador', state: 'BA', street: 'Rua Chile', number: 250, complemento: '', cep: '40015-000', status: 'ativo', vip: false, total_pedidos: 10, total_gasto: 1650.00, ultima_compra: '2026-06-24T16:00:00', pagamento_preferido: 'PIX', observacoes: '', favorites: [{ name: 'Açaí 500ml', count: 4 }, { name: 'Hambúrguer Artesanal', count: 3 }], created_at: '2025-06-15T10:00:00' },
-  { id: 7, name: 'Lucas Ferreira', phone: '(61) 99432-1098', cpf: '147.258.369-00', email: 'lucas.ferreira@email.com', city: 'Brasília', state: 'DF', street: 'SQN 308, Bloco A', number: 102, complemento: 'Conjunto B', cep: '70747-020', status: 'ativo', vip: false, total_pedidos: 18, total_gasto: 4300.00, ultima_compra: '2026-06-27T20:15:00', pagamento_preferido: 'Cartão de Crédito', observacoes: 'Trabalha perto, entrega no escritório.', favorites: [{ name: 'Combo Família', count: 7 }, { name: 'Pizza Margherita', count: 5 }], created_at: '2025-02-20T10:00:00' },
-  { id: 8, name: 'Juliana Costa', phone: '(85) 99321-0987', cpf: '258.369.147-00', email: 'juliana.costa@email.com', city: 'Fortaleza', state: 'CE', street: 'Rua Barão de Aracati', number: 600, complemento: '', cep: '60115-080', status: 'inativo', vip: false, total_pedidos: 5, total_gasto: 720.00, ultima_compra: '2026-05-10T15:00:00', pagamento_preferido: 'Dinheiro', observacoes: 'Não faz pedido desde maio.', favorites: [{ name: 'Batata Frita', count: 3 }], created_at: '2025-09-01T10:00:00' },
-  { id: 9, name: 'Rafael Santos', phone: '(92) 99210-9876', cpf: '369.147.258-00', email: 'rafael.santos@email.com', city: 'Manaus', state: 'AM', street: 'Rua Ramos Ferreira', number: 1050, complemento: '', cep: '69010-120', status: 'ativo', vip: false, total_pedidos: 14, total_gasto: 2800.00, ultima_compra: '2026-06-23T19:45:00', pagamento_preferido: 'PIX', observacoes: '', favorites: [{ name: 'Hambúrguer Artesanal', count: 5 }, { name: 'Combo Família', count: 4 }], created_at: '2025-04-10T10:00:00' },
-  { id: 10, name: 'Beatriz Lima', phone: '(81) 99109-8765', cpf: '951.753.486-00', email: 'beatriz.lima@email.com', city: 'Recife', state: 'PE', street: 'Rua da Aurora', number: 350, complemento: 'Apto 201', cep: '50050-000', status: 'novo', vip: false, total_pedidos: 2, total_gasto: 260.00, ultima_compra: '2026-06-21T17:30:00', pagamento_preferido: 'PIX', observacoes: 'Indicada pela Maria Oliveira.', favorites: [{ name: 'Açaí 500ml', count: 2 }], created_at: '2026-06-15T10:00:00' },
-  { id: 11, name: 'Thiago Almeida', phone: '(62) 99098-7654', cpf: '753.486.951-00', email: 'thiago.almeida@email.com', city: 'Goiânia', state: 'GO', street: 'Rua 84', number: 500, complemento: '', cep: '74013-010', status: 'inativo', vip: false, total_pedidos: 3, total_gasto: 450.00, ultima_compra: '2026-04-20T18:00:00', pagamento_preferido: 'Dinheiro', observacoes: 'Mudou de cidade.', favorites: [{ name: 'Hambúrguer Artesanal', count: 2 }], created_at: '2026-01-05T10:00:00' },
-  { id: 12, name: 'Camila Ribeiro', phone: '(91) 98987-6543', cpf: '486.951.753-00', email: 'camila.ribeiro@email.com', city: 'Belém', state: 'PA', street: 'Rua do Padre Eutíquio', number: 900, complemento: '', cep: '66033-000', status: 'ativo', vip: false, total_pedidos: 7, total_gasto: 1120.00, ultima_compra: '2026-06-25T16:45:00', pagamento_preferido: 'Cartão de Crédito', observacoes: '', favorites: [{ name: 'Açaí 500ml', count: 3 }, { name: 'Pizza Margherita', count: 2 }], created_at: '2025-11-10T10:00:00' },
-  { id: 13, name: 'Felipe Martins', phone: '(27) 98876-5432', cpf: '159.357.486-00', email: 'felipe.martins@email.com', city: 'Vitória', state: 'ES', street: 'Av. Jerônimo Monteiro', number: 700, complemento: 'Sala 302', cep: '29010-010', status: 'ativo', vip: false, total_pedidos: 11, total_gasto: 2100.00, ultima_compra: '2026-06-28T19:30:00', pagamento_preferido: 'PIX', observacoes: 'Gosta de pedir à noite.', favorites: [{ name: 'Combo Família', count: 4 }, { name: 'Hambúrguer Artesanal', count: 3 }], created_at: '2025-07-20T10:00:00' },
-  { id: 14, name: 'Larissa Pereira', phone: '(48) 98765-4321', cpf: '357.486.159-00', email: 'larissa.pereira@email.com', city: 'Florianópolis', state: 'SC', street: 'Rua Tenente Marones de Gusmão', number: 120, complemento: '', cep: '88010-010', status: 'vip', vip: true, total_pedidos: 28, total_gasto: 6800.00, ultima_compra: '2026-06-30T12:00:00', pagamento_preferido: 'Cartão de Crédito', observacoes: 'Cliente VIP desde janeiro. Sempre elogia.', favorites: [{ name: 'Pizza Margherita', count: 10 }, { name: 'Batata Frita', count: 8 }], created_at: '2024-06-01T10:00:00' },
-  { id: 15, name: 'Gabriel Rodrigues', phone: '(43) 98654-3210', cpf: '486.159.357-00', email: 'gabriel.rodrigues@email.com', city: 'Londrina', state: 'PR', street: 'Av. Higienópolis', number: 800, complemento: '', cep: '86010-000', status: 'inativo', vip: false, total_pedidos: 4, total_gasto: 680.00, ultima_compra: '2026-03-15T17:00:00', pagamento_preferido: 'PIX', observacoes: 'Último pedido em março.', favorites: [{ name: 'Hambúrguer Artesanal', count: 2 }], created_at: '2025-12-01T10:00:00' },
-  { id: 16, name: 'Mariana Nascimento', phone: '(32) 98543-2109', cpf: '753.486.159-00', email: 'mariana.nascimento@email.com', city: 'Juiz de Fora', state: 'MG', street: 'Rua Halfeld', number: 1000, complemento: 'Apto 503', cep: '36010-010', status: 'ativo', vip: false, total_pedidos: 16, total_gasto: 3500.00, ultima_compra: '2026-06-26T20:00:00', pagamento_preferido: 'Cartão de Débito', observacoes: '', favorites: [{ name: 'Combo Família', count: 6 }, { name: 'Pizza Margherita', count: 4 }], created_at: '2025-05-15T10:00:00' },
-  { id: 17, name: 'Igor Costa', phone: '(19) 98432-1098', cpf: '258.951.753-00', email: 'igor.costa@email.com', city: 'Campinas', state: 'SP', street: 'Rua Barão de Jaguara', number: 900, complemento: '', cep: '13013-010', status: 'ativo', vip: false, total_pedidos: 13, total_gasto: 2750.00, ultima_compra: '2026-06-27T13:30:00', pagamento_preferido: 'PIX', observacoes: '', favorites: [{ name: 'Hambúrguer Artesanal', count: 5 }, { name: 'Coca-Cola 2L', count: 4 }], created_at: '2025-08-20T10:00:00' },
-  { id: 18, name: 'Patrícia Santos', phone: '(13) 98321-0987', cpf: '951.753.486-00', email: 'patricia.santos@email.com', city: 'Santos', state: 'SP', street: 'Rua XV de Novembro', number: 150, complemento: 'Casa', cep: '11013-000', status: 'inativo', vip: false, total_pedidos: 2, total_gasto: 320.00, ultima_compra: '2026-02-10T16:00:00', pagamento_preferido: 'Dinheiro', observacoes: 'Morou mudou para outra cidade.', favorites: [{ name: 'Pizza Margherita', count: 1 }], created_at: '2026-01-10T10:00:00' },
-  { id: 19, name: 'André Oliveira', phone: '(21) 98210-9876', cpf: '159.753.486-00', email: 'andre.oliveira@email.com', city: 'Niterói', state: 'RJ', street: 'Rua São Francisco', number: 400, complemento: '', cep: '24020-000', status: 'ativo', vip: false, total_pedidos: 19, total_gasto: 4100.00, ultima_compra: '2026-06-29T15:45:00', pagamento_preferido: 'PIX', observacoes: 'Compra semanalmente.', favorites: [{ name: 'Combo Família', count: 7 }, { name: 'Batata Frita', count: 5 }], created_at: '2025-04-01T10:00:00' },
-  { id: 20, name: 'Isabela Fernandes', phone: '(16) 98109-8765', cpf: '486.951.753-00', email: 'isabela.fernandes@email.com', city: 'Ribeirão Preto', state: 'SP', street: 'Rua Augusta', number: 500, complemento: 'Apto 102', cep: '14010-010', status: 'novo', vip: false, total_pedidos: 2, total_gasto: 290.00, ultima_compra: '2026-06-24T18:30:00', pagamento_preferido: 'PIX', observacoes: 'Primeira compra esta semana.', favorites: [{ name: 'Açaí 500ml', count: 2 }], created_at: '2026-06-20T10:00:00' },
+  { id: 1, name: 'João Silva', phone: '(11) 99876-5432', cpf: '123.456.789-00', email: 'joao.silva@email.com', city: 'São Paulo', state: 'SP', street: 'Rua Augusta', number: 1250, complemento: 'Apto 42', cep: '01304-000', status: 'ativo', total_pedidos: 12, total_gasto: 2450.00, ultima_compra: '2026-06-28T14:30:00', pagamento_preferido: 'PIX', observacoes: 'Cliente fiel, sempre elogia os produtos.', favorites: [{ name: 'Hambúrguer Artesanal', count: 5 }, { name: 'Combo Família', count: 3 }], created_at: '2025-01-15T10:00:00' },
+  { id: 2, name: 'Maria Oliveira', phone: '(31) 98765-4321', cpf: '987.654.321-00', email: 'maria.oliveira@email.com', city: 'Belo Horizonte', state: 'MG', street: 'Rua da Bahia', number: 450, complemento: 'Sala 101', cep: '30160-010', status: 'ativo', total_pedidos: 25, total_gasto: 5890.00, ultima_compra: '2026-06-30T18:45:00', pagamento_preferido: 'Cartão de Crédito', observacoes: 'Compra toda semana. Prefere entrega noturna.', favorites: [{ name: 'Pizza Margherita', count: 8 }, { name: 'Açaí 500ml', count: 6 }], created_at: '2024-11-20T10:00:00' },
+  { id: 3, name: 'Pedro Henrique', phone: '(21) 99765-4321', cpf: '456.789.123-00', email: 'pedro.henrique@email.com', city: 'Rio de Janeiro', state: 'RJ', street: 'Rua das Laranjeiras', number: 300, complemento: '', cep: '22240-000', status: 'ativo', total_pedidos: 15, total_gasto: 3200.00, ultima_compra: '2026-06-27T19:00:00', pagamento_preferido: 'Dinheiro', observacoes: '', favorites: [{ name: 'Combo Família', count: 6 }, { name: 'Batata Frita', count: 5 }], created_at: '2025-03-10T10:00:00' },
+  { id: 4, name: 'Ana Paula Costa', phone: '(41) 99876-1234', cpf: '321.654.987-00', email: 'ana.paula@email.com', city: 'Curitiba', state: 'PR', street: 'Rua XV de Novembro', number: 780, complemento: 'Casa', cep: '80020-310', status: 'novo', total_pedidos: 3, total_gasto: 380.00, ultima_compra: '2026-06-22T17:20:00', pagamento_preferido: 'PIX', observacoes: 'Cliente novo, primeira compra em junho.', favorites: [{ name: 'Açaí 500ml', count: 2 }], created_at: '2026-06-01T10:00:00' },
+  { id: 5, name: 'Carlos Eduardo', phone: '(51) 99654-3210', cpf: '654.321.987-00', email: 'carlos.eduardo@email.com', city: 'Porto Alegre', state: 'RS', street: 'Rua dos Andradas', number: 1100, complemento: 'Loja 3', cep: '90020-007', status: 'ativo', total_pedidos: 32, total_gasto: 8100.00, ultima_compra: '2026-06-29T20:45:00', pagamento_preferido: 'Cartão de Débito', observacoes: 'Maior cliente do mês. Sempre compra combos.', favorites: [{ name: 'Combo Família', count: 12 }, { name: 'Pizza Margherita', count: 8 }], created_at: '2024-08-05T10:00:00' },
+  { id: 6, name: 'Fernanda Souza', phone: '(71) 99543-2109', cpf: '789.123.456-00', email: 'fernanda.souza@email.com', city: 'Salvador', state: 'BA', street: 'Rua Chile', number: 250, complemento: '', cep: '40015-000', status: 'ativo', total_pedidos: 10, total_gasto: 1650.00, ultima_compra: '2026-06-24T16:00:00', pagamento_preferido: 'PIX', observacoes: '', favorites: [{ name: 'Açaí 500ml', count: 4 }, { name: 'Hambúrguer Artesanal', count: 3 }], created_at: '2025-06-15T10:00:00' },
+  { id: 7, name: 'Lucas Ferreira', phone: '(61) 99432-1098', cpf: '147.258.369-00', email: 'lucas.ferreira@email.com', city: 'Brasília', state: 'DF', street: 'SQN 308, Bloco A', number: 102, complemento: 'Conjunto B', cep: '70747-020', status: 'ativo', total_pedidos: 18, total_gasto: 4300.00, ultima_compra: '2026-06-27T20:15:00', pagamento_preferido: 'Cartão de Crédito', observacoes: 'Trabalha perto, entrega no escritório.', favorites: [{ name: 'Combo Família', count: 7 }, { name: 'Pizza Margherita', count: 5 }], created_at: '2025-02-20T10:00:00' },
+  { id: 8, name: 'Juliana Costa', phone: '(85) 99321-0987', cpf: '258.369.147-00', email: 'juliana.costa@email.com', city: 'Fortaleza', state: 'CE', street: 'Rua Barão de Aracati', number: 600, complemento: '', cep: '60115-080', status: 'inativo', total_pedidos: 5, total_gasto: 720.00, ultima_compra: '2026-05-10T15:00:00', pagamento_preferido: 'Dinheiro', observacoes: 'Não faz pedido desde maio.', favorites: [{ name: 'Batata Frita', count: 3 }], created_at: '2025-09-01T10:00:00' },
+  { id: 9, name: 'Rafael Santos', phone: '(92) 99210-9876', cpf: '369.147.258-00', email: 'rafael.santos@email.com', city: 'Manaus', state: 'AM', street: 'Rua Ramos Ferreira', number: 1050, complemento: '', cep: '69010-120', status: 'ativo', total_pedidos: 14, total_gasto: 2800.00, ultima_compra: '2026-06-23T19:45:00', pagamento_preferido: 'PIX', observacoes: '', favorites: [{ name: 'Hambúrguer Artesanal', count: 5 }, { name: 'Combo Família', count: 4 }], created_at: '2025-04-10T10:00:00' },
+  { id: 10, name: 'Beatriz Lima', phone: '(81) 99109-8765', cpf: '951.753.486-00', email: 'beatriz.lima@email.com', city: 'Recife', state: 'PE', street: 'Rua da Aurora', number: 350, complemento: 'Apto 201', cep: '50050-000', status: 'novo', total_pedidos: 2, total_gasto: 260.00, ultima_compra: '2026-06-21T17:30:00', pagamento_preferido: 'PIX', observacoes: 'Indicada pela Maria Oliveira.', favorites: [{ name: 'Açaí 500ml', count: 2 }], created_at: '2026-06-15T10:00:00' },
+  { id: 11, name: 'Thiago Almeida', phone: '(62) 99098-7654', cpf: '753.486.951-00', email: 'thiago.almeida@email.com', city: 'Goiânia', state: 'GO', street: 'Rua 84', number: 500, complemento: '', cep: '74013-010', status: 'inativo', total_pedidos: 3, total_gasto: 450.00, ultima_compra: '2026-04-20T18:00:00', pagamento_preferido: 'Dinheiro', observacoes: 'Mudou de cidade.', favorites: [{ name: 'Hambúrguer Artesanal', count: 2 }], created_at: '2026-01-05T10:00:00' },
+  { id: 12, name: 'Camila Ribeiro', phone: '(91) 98987-6543', cpf: '486.951.753-00', email: 'camila.ribeiro@email.com', city: 'Belém', state: 'PA', street: 'Rua do Padre Eutíquio', number: 900, complemento: '', cep: '66033-000', status: 'ativo', total_pedidos: 7, total_gasto: 1120.00, ultima_compra: '2026-06-25T16:45:00', pagamento_preferido: 'Cartão de Crédito', observacoes: '', favorites: [{ name: 'Açaí 500ml', count: 3 }, { name: 'Pizza Margherita', count: 2 }], created_at: '2025-11-10T10:00:00' },
+  { id: 13, name: 'Felipe Martins', phone: '(27) 98876-5432', cpf: '159.357.486-00', email: 'felipe.martins@email.com', city: 'Vitória', state: 'ES', street: 'Av. Jerônimo Monteiro', number: 700, complemento: 'Sala 302', cep: '29010-010', status: 'ativo', total_pedidos: 11, total_gasto: 2100.00, ultima_compra: '2026-06-28T19:30:00', pagamento_preferido: 'PIX', observacoes: 'Gosta de pedir à noite.', favorites: [{ name: 'Combo Família', count: 4 }, { name: 'Hambúrguer Artesanal', count: 3 }], created_at: '2025-07-20T10:00:00' },
+  { id: 14, name: 'Larissa Pereira', phone: '(48) 98765-4321', cpf: '357.486.159-00', email: 'larissa.pereira@email.com', city: 'Florianópolis', state: 'SC', street: 'Rua Tenente Marones de Gusmão', number: 120, complemento: '', cep: '88010-010', status: 'ativo', total_pedidos: 28, total_gasto: 6800.00, ultima_compra: '2026-06-30T12:00:00', pagamento_preferido: 'Cartão de Crédito', observacoes: 'Cliente desde janeiro. Sempre elogia.', favorites: [{ name: 'Pizza Margherita', count: 10 }, { name: 'Batata Frita', count: 8 }], created_at: '2024-06-01T10:00:00' },
+  { id: 15, name: 'Gabriel Rodrigues', phone: '(43) 98654-3210', cpf: '486.159.357-00', email: 'gabriel.rodrigues@email.com', city: 'Londrina', state: 'PR', street: 'Av. Higienópolis', number: 800, complemento: '', cep: '86010-000', status: 'inativo', total_pedidos: 4, total_gasto: 680.00, ultima_compra: '2026-03-15T17:00:00', pagamento_preferido: 'PIX', observacoes: 'Último pedido em março.', favorites: [{ name: 'Hambúrguer Artesanal', count: 2 }], created_at: '2025-12-01T10:00:00' },
+  { id: 16, name: 'Mariana Nascimento', phone: '(32) 98543-2109', cpf: '753.486.159-00', email: 'mariana.nascimento@email.com', city: 'Juiz de Fora', state: 'MG', street: 'Rua Halfeld', number: 1000, complemento: 'Apto 503', cep: '36010-010', status: 'ativo', total_pedidos: 16, total_gasto: 3500.00, ultima_compra: '2026-06-26T20:00:00', pagamento_preferido: 'Cartão de Débito', observacoes: '', favorites: [{ name: 'Combo Família', count: 6 }, { name: 'Pizza Margherita', count: 4 }], created_at: '2025-05-15T10:00:00' },
+  { id: 17, name: 'Igor Costa', phone: '(19) 98432-1098', cpf: '258.951.753-00', email: 'igor.costa@email.com', city: 'Campinas', state: 'SP', street: 'Rua Barão de Jaguara', number: 900, complemento: '', cep: '13013-010', status: 'ativo', total_pedidos: 13, total_gasto: 2750.00, ultima_compra: '2026-06-27T13:30:00', pagamento_preferido: 'PIX', observacoes: '', favorites: [{ name: 'Hambúrguer Artesanal', count: 5 }, { name: 'Coca-Cola 2L', count: 4 }], created_at: '2025-08-20T10:00:00' },
+  { id: 18, name: 'Patrícia Santos', phone: '(13) 98321-0987', cpf: '951.753.486-00', email: 'patricia.santos@email.com', city: 'Santos', state: 'SP', street: 'Rua XV de Novembro', number: 150, complemento: 'Casa', cep: '11013-000', status: 'inativo', total_pedidos: 2, total_gasto: 320.00, ultima_compra: '2026-02-10T16:00:00', pagamento_preferido: 'Dinheiro', observacoes: 'Mudou para outra cidade.', favorites: [{ name: 'Pizza Margherita', count: 1 }], created_at: '2026-01-10T10:00:00' },
+  { id: 19, name: 'André Oliveira', phone: '(21) 98210-9876', cpf: '159.753.486-00', email: 'andre.oliveira@email.com', city: 'Niterói', state: 'RJ', street: 'Rua São Francisco', number: 400, complemento: '', cep: '24020-000', status: 'ativo', total_pedidos: 19, total_gasto: 4100.00, ultima_compra: '2026-06-29T15:45:00', pagamento_preferido: 'PIX', observacoes: 'Compra semanalmente.', favorites: [{ name: 'Combo Família', count: 7 }, { name: 'Batata Frita', count: 5 }], created_at: '2025-04-01T10:00:00' },
+  { id: 20, name: 'Isabela Fernandes', phone: '(16) 98109-8765', cpf: '486.951.753-00', email: 'isabela.fernandes@email.com', city: 'Ribeirão Preto', state: 'SP', street: 'Rua Augusta', number: 500, complemento: 'Apto 102', cep: '14010-010', status: 'novo', total_pedidos: 2, total_gasto: 290.00, ultima_compra: '2026-06-24T18:30:00', pagamento_preferido: 'PIX', observacoes: 'Primeira compra esta semana.', favorites: [{ name: 'Açaí 500ml', count: 2 }], created_at: '2026-06-20T10:00:00' },
 ];
 
 const STATUS_CONFIG = {
   ativo: { label: 'Ativo', color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
-  vip: { label: 'VIP', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
   novo: { label: 'Novo', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
   inativo: { label: 'Inativo', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' },
 };
@@ -66,7 +65,7 @@ export default function ClientesPage() {
 
   const [form, setForm] = useState({
     name: '', phone: '', cpf: '', email: '', cep: '', city: '', state: '',
-    street: '', number: '', complemento: '', observacoes: '', vip: false
+    street: '', number: '', complemento: '', observacoes: ''
   });
 
   useEffect(() => {
@@ -99,8 +98,8 @@ export default function ClientesPage() {
   const stats = useMemo(() => ({
     total: clients.length,
     ativos: clients.filter(c => c.status === 'ativo').length,
-    vip: clients.filter(c => c.status === 'vip' || c.vip).length,
     novos: clients.filter(c => c.status === 'novo').length,
+    inativos: clients.filter(c => c.status === 'inativo').length,
   }), [clients]);
 
   const filtered = useMemo(() => {
@@ -118,8 +117,7 @@ export default function ClientesPage() {
     }
 
     if (filterStatus !== 'todos') {
-      if (filterStatus === 'vip') list = list.filter(c => c.status === 'vip' || c.vip);
-      else list = list.filter(c => c.status === filterStatus);
+      list = list.filter(c => c.status === filterStatus);
     }
 
     list.sort((a, b) => {
@@ -155,7 +153,7 @@ export default function ClientesPage() {
   };
 
   const openModal = () => {
-    setForm({ name: '', phone: '', cpf: '', email: '', cep: '', city: '', state: '', street: '', number: '', complemento: '', observacoes: '', vip: false });
+    setForm({ name: '', phone: '', cpf: '', email: '', cep: '', city: '', state: '', street: '', number: '', complemento: '', observacoes: '' });
     setModalOpen(true);
   };
 
@@ -166,7 +164,7 @@ export default function ClientesPage() {
     const newClient = {
       id: Date.now(),
       ...form,
-      status: form.vip ? 'vip' : 'novo',
+      status: 'novo',
       total_pedidos: 0,
       total_gasto: 0,
       ultima_compra: null,
@@ -189,8 +187,8 @@ export default function ClientesPage() {
   const metricCards = [
     { title: 'Total de Clientes', value: stats.total, icon: Users, color: '#fc6901', gradient: 'linear-gradient(135deg, #fc6901, #e55a00)', subtitle: 'cadastrados no sistema' },
     { title: 'Clientes Ativos', value: stats.ativos, icon: UserCheck, color: '#10b981', gradient: 'linear-gradient(135deg, #10b981, #059669)', subtitle: 'comprando regularmente' },
-    { title: 'Clientes VIP', value: stats.vip, icon: Crown, color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)', subtitle: 'maior valor de compra' },
     { title: 'Novos Clientes', value: stats.novos, icon: UserPlus, color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)', subtitle: 'últimos 30 dias' },
+    { title: 'Inativos', value: stats.inativos, icon: Users, color: '#94a3b8', gradient: 'linear-gradient(135deg, #94a3b8, #64748b)', subtitle: 'sem pedidos recentes' },
   ];
 
   if (loading) {
@@ -265,7 +263,7 @@ export default function ClientesPage() {
           <div className="filter-group">
             <Filter size={14} />
             <span className="filter-label">Filtro:</span>
-            {['todos', 'ativo', 'vip', 'novo', 'inativo'].map(s => (
+            {['todos', 'ativo', 'novo', 'inativo'].map(s => (
               <button
                 key={s}
                 className={`filter-btn ${filterStatus === s ? 'active' : ''}`}
@@ -316,8 +314,7 @@ export default function ClientesPage() {
       ) : viewMode === 'cards' ? (
         <div className="clientes-cards-grid">
           {filtered.map((client, index) => {
-            const statusKey = client.vip ? 'vip' : client.status;
-            const status = STATUS_CONFIG[statusKey] || STATUS_CONFIG.ativo;
+            const status = STATUS_CONFIG[client.status] || STATUS_CONFIG.ativo;
             return (
               <div key={client.id} className="cliente-card-mobile" style={{ animationDelay: `${index * 0.03}s` }}>
                 <div className="cliente-card-header">
@@ -360,8 +357,7 @@ export default function ClientesPage() {
             </thead>
             <tbody>
               {filtered.map((client, index) => {
-                const statusKey = client.vip ? 'vip' : client.status;
-                const status = STATUS_CONFIG[statusKey] || STATUS_CONFIG.ativo;
+                const status = STATUS_CONFIG[client.status] || STATUS_CONFIG.ativo;
                 return (
                   <tr key={client.id} style={{ animationDelay: `${index * 0.02}s` }}>
                     <td>
@@ -417,16 +413,16 @@ export default function ClientesPage() {
             </div>
             <div className="drawer-body">
               <div className="drawer-profile">
-                <div className="drawer-avatar" style={{ background: `linear-gradient(135deg, ${(STATUS_CONFIG[selectedClient.vip ? 'vip' : selectedClient.status] || STATUS_CONFIG.ativo).color}, ${(STATUS_CONFIG[selectedClient.vip ? 'vip' : selectedClient.status] || STATUS_CONFIG.ativo).color}dd)` }}>
+                <div className="drawer-avatar" style={{ background: `linear-gradient(135deg, ${(STATUS_CONFIG[selectedClient.status] || STATUS_CONFIG.ativo).color}, ${(STATUS_CONFIG[selectedClient.status] || STATUS_CONFIG.ativo).color}dd)` }}>
                   {getInitials(selectedClient.name)}
                 </div>
                 <div className="drawer-profile-info">
                   <h3>{selectedClient.name}</h3>
                   <span className="status-badge" style={{
-                    color: (STATUS_CONFIG[selectedClient.vip ? 'vip' : selectedClient.status] || STATUS_CONFIG.ativo).color,
-                    background: (STATUS_CONFIG[selectedClient.vip ? 'vip' : selectedClient.status] || STATUS_CONFIG.ativo).bg
+                    color: (STATUS_CONFIG[selectedClient.status] || STATUS_CONFIG.ativo).color,
+                    background: (STATUS_CONFIG[selectedClient.status] || STATUS_CONFIG.ativo).bg
                   }}>
-                    {(STATUS_CONFIG[selectedClient.vip ? 'vip' : selectedClient.status] || STATUS_CONFIG.ativo).label}
+                    {(STATUS_CONFIG[selectedClient.status] || STATUS_CONFIG.ativo).label}
                   </span>
                 </div>
               </div>
@@ -548,13 +544,6 @@ export default function ClientesPage() {
               <div className="form-group">
                 <label>Observações</label>
                 <textarea value={form.observacoes} onChange={e => handleFormChange('observacoes', e.target.value)} placeholder="Notas sobre o cliente..." rows={3} />
-              </div>
-              <div className="form-group form-checkbox">
-                <label>
-                  <input type="checkbox" checked={form.vip} onChange={e => handleFormChange('vip', e.target.checked)} />
-                  <Crown size={14} />
-                  Cliente VIP
-                </label>
               </div>
             </div>
             <div className="modal-footer">

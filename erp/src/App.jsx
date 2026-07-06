@@ -13,6 +13,7 @@ import MotoboyPage from './pages/erp/MotoboyPage';
 import ConfigPage from './pages/erp/ConfigPage';
 import CupomFiscalPage from './pages/erp/CupomFiscalPage.jsx';
 import EstoqueInsumos from './pages/erp/EstoqueInsumos.jsx';
+import PortalCliente from './pages/portal/PortalCliente.jsx';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -24,6 +25,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/portal" element={<PortalCliente />} />
       <Route path="/erp/*" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Navigate to="/erp/dashboard" />} />
         <Route path="dashboard" element={<Dashboard />} />
