@@ -8,6 +8,7 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend
 } from 'recharts';
+import { useData } from '../../contexts/DataContext';
 import './Dashboard.css';
 
 // =============================================
@@ -48,80 +49,6 @@ function AnimatedCounter({ value, prefix = '', suffix = '', decimals = 2 }) {
 const COLORS = ['#fc6901', '#7b4b34', '#54240d', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6'];
 
 // =============================================
-// Mock Data
-// =============================================
-function generateFaturamento30d() {
-  const data = [];
-  const now = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-    const base = isWeekend ? 800 : 1400;
-    const total = base + Math.random() * 600;
-    data.push({
-      date: d.toISOString().slice(0, 10),
-      total: Math.round(total * 100) / 100,
-    });
-  }
-  return data;
-}
-
-function generatePedidosPorHora() {
-  const data = [];
-  const distribution = [0,0,0,0,0,0,2,5,12,18,22,25,28,24,20,18,22,26,30,25,18,10,5,2];
-  for (let h = 0; h < 24; h++) {
-    data.push({ hour: `${String(h).padStart(2,'0')}:00`, count: distribution[h] + Math.floor(Math.random() * 4) });
-  }
-  return data;
-}
-
-const PRODUTOS_MOCK = [
-  { name: 'Hambúrguer Artesanal', quantity: 186 },
-  { name: 'Pizza Margherita', quantity: 142 },
-  { name: 'Batata Frita', quantity: 198 },
-  { name: 'Coca-Cola 2L', quantity: 156 },
-  { name: 'Água 500ml', quantity: 134 },
-  { name: 'Combo Família', quantity: 89 },
-  { name: 'Pastel de Carne', quantity: 72 },
-  { name: 'Suco Natural', quantity: 95 },
-  { name: 'Açaí 500ml', quantity: 110 },
-  { name: 'Porção de Feijão', quantity: 64 },
-];
-
-const HEATMAP_REGIONS = [
-  { name: 'Centro', orders: 42, color: '#fc6901' },
-  { name: 'Savassi', orders: 38, color: '#fc6901' },
-  { name: 'Lourdes', orders: 25, color: '#7b4b34' },
-  { name: 'Funcionários', orders: 15, color: '#7b4b34' },
-  { name: 'Pampulha', orders: 30, color: '#fc6901' },
-  { name: 'Barreiro', orders: 8, color: '#54240d' },
-  { name: 'Venda Nova', orders: 12, color: '#7b4b34' },
-  { name: 'Norte', orders: 5, color: '#54240d' },
-];
-
-const MOCK_DASHBOARD_DATA = {
-  metrics: {
-    vendas_dia: 1845.90,
-    vendas_mes: 42870.35,
-    pedidos_andamento: 18,
-    entregas_concluidas: 132,
-    entregas_pendentes: 6,
-    total_clientes: 245,
-  },
-  charts: {
-    faturamento_30d: generateFaturamento30d(),
-    pedidos_por_hora: generatePedidosPorHora(),
-    produtos_mais_vendidos: PRODUTOS_MOCK,
-    lucro_vs_despesas: {
-      receita: 42870.35,
-      despesas: 18432.50,
-      lucro: 24437.85,
-    },
-  },
-};
-
-// =============================================
 // Skeleton
 // =============================================
 function DashboardSkeleton() {
@@ -160,19 +87,7 @@ function DashboardSkeleton() {
 // Main Dashboard Component
 // =============================================
 export default function Dashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchDashboard = async () => {
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 400));
-    setData(MOCK_DASHBOARD_DATA);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
+  const { dashboardStats, financialStats, topProducts, orders, clients } = useData();
 
   const exportPDF = async () => {
     try {
@@ -221,13 +136,10 @@ export default function Dashboard() {
   const formatCurrency = (value) =>
     `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  const metrics = data?.metrics || {};
-  const charts = data?.charts || {};
-
   const metricCards = useMemo(() => [
     {
       title: 'Vendas do Dia',
-      value: metrics.vendas_dia || 0,
+      value: dashboardStats.vendas_dia || 0,
       icon: DollarSign,
       color: '#10b981',
       gradient: 'linear-gradient(135deg, #10b981, #059669)',
@@ -237,7 +149,7 @@ export default function Dashboard() {
     },
     {
       title: 'Vendas do Mês',
-      value: metrics.vendas_mes || 0,
+      value: dashboardStats.vendas_mes || 0,
       icon: TrendingUp,
       color: '#3b82f6',
       gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)',
@@ -247,7 +159,7 @@ export default function Dashboard() {
     },
     {
       title: 'Pedidos em Andamento',
-      value: metrics.pedidos_andamento || 0,
+      value: dashboardStats.pedidos_andamento || 0,
       icon: Clock,
       color: '#f59e0b',
       gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
@@ -257,7 +169,7 @@ export default function Dashboard() {
     },
     {
       title: 'Entregas Concluídas',
-      value: metrics.entregas_concluidas || 0,
+      value: dashboardStats.entregas_concluidas || 0,
       icon: Truck,
       color: '#10b981',
       gradient: 'linear-gradient(135deg, #10b981, #059669)',
@@ -267,7 +179,7 @@ export default function Dashboard() {
     },
     {
       title: 'Entregas Pendentes',
-      value: metrics.entregas_pendentes || 0,
+      value: dashboardStats.entregas_pendentes || 0,
       icon: Clock,
       color: '#8b5cf6',
       gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
@@ -277,7 +189,7 @@ export default function Dashboard() {
     },
     {
       title: 'Total de Clientes',
-      value: metrics.total_clientes || 0,
+      value: dashboardStats.total_clientes || 0,
       icon: Package,
       color: '#fc6901',
       gradient: 'linear-gradient(135deg, #fc6901, #e55a00)',
@@ -285,9 +197,59 @@ export default function Dashboard() {
       prefix: '',
       decimals: 0,
     },
-  ], [metrics]);
+  ], [dashboardStats]);
 
-  const maxOrders = Math.max(...HEATMAP_REGIONS.map(r => r.orders));
+  const faturamento30d = useMemo(() => {
+    const now = new Date();
+    const data = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dayStart = new Date(d.setHours(0, 0, 0, 0)).toISOString();
+      const dayEnd = new Date(d.setHours(23, 59, 59, 999)).toISOString();
+      const total = orders
+        .filter(o => o.created_at >= dayStart && o.created_at <= dayEnd && o.payment_status === 'pago' && o.status !== 'cancelado')
+        .reduce((acc, o) => acc + o.total, 0);
+      data.push({ date: dayStart.split('T')[0], total: Math.round(total * 100) / 100 });
+    }
+    return data;
+  }, [orders]);
+
+  const pedidosPorHora = useMemo(() => {
+    const distribution = {};
+    orders.forEach(o => {
+      const hour = new Date(o.created_at).getHours();
+      distribution[hour] = (distribution[hour] || 0) + 1;
+    });
+    const data = [];
+    for (let h = 0; h < 24; h++) {
+      data.push({ hour: `${String(h).padStart(2, '0')}:00`, count: distribution[h] || 0 });
+    }
+    return data;
+  }, [orders]);
+
+  const produtosMaisVendidos = useMemo(() =>
+    topProducts.map(p => ({ name: p.name, quantity: p.count || p.quantity || 0 })),
+    [topProducts]
+  );
+
+  const heatmapRegions = useMemo(() => {
+    const regionCount = {};
+    orders.forEach(o => {
+      if (o.status === 'cancelado') return;
+      const address = o.client_address || '';
+      const regionMatch = address.match(/,\s*(.+)$/);
+      const region = regionMatch ? regionMatch[1].trim() : address.split(' - ')[1] || address;
+      if (!region) return;
+      regionCount[region] = (regionCount[region] || 0) + 1;
+    });
+    return Object.entries(regionCount)
+      .map(([name, orders]) => ({ name, orders }))
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 8);
+  }, [orders]);
+
+  const maxOrders = heatmapRegions.length > 0 ? Math.max(...heatmapRegions.map(r => r.orders)) : 1;
   const getHeatColor = (orders) => {
     const intensity = orders / maxOrders;
     if (intensity > 0.7) return '#fc6901';
@@ -311,8 +273,6 @@ export default function Dashboard() {
     );
   };
 
-  if (loading) return <DashboardSkeleton />;
-
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -321,12 +281,6 @@ export default function Dashboard() {
           <p>Visão geral da sua operação</p>
         </div>
         <div className="dashboard-actions">
-          <button className="refresh-btn" onClick={fetchDashboard} title="Atualizar dados">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16" />
-            </svg>
-            Atualizar
-          </button>
           <button className="export-pdf-btn" onClick={exportPDF}>
             <FileDown size={16} />
             Exportar PDF
@@ -356,7 +310,7 @@ export default function Dashboard() {
           <h3>Faturamento dos Últimos 30 Dias</h3>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={charts.faturamento_30d || []}>
+              <LineChart data={faturamento30d}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} tickFormatter={(v) => v.slice(5)} stroke="var(--border)" />
                 <YAxis tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} stroke="var(--border)" tickFormatter={(v) => `R$${v}`} />
@@ -371,13 +325,13 @@ export default function Dashboard() {
           <h3>Pedidos por Hora do Dia</h3>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={charts.pedidos_por_hora || []}>
+              <BarChart data={pedidosPorHora}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
                 <XAxis dataKey="hour" tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} stroke="var(--border)" interval={2} />
                 <YAxis tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} stroke="var(--border)" allowDecimals={false} />
                 <Tooltip content={<ChartTooltip />} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]} fill="#7b4b34">
-                  {(charts.pedidos_por_hora || []).map((_, i) => (
+                  {pedidosPorHora.map((_, i) => (
                     <Cell key={i} fill={i < 12 ? '#7b4b34' : '#fc6901'} />
                   ))}
                 </Bar>
@@ -392,12 +346,12 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={320}>
               <PieChart>
                 <Pie
-                  data={(charts.produtos_mais_vendidos || []).slice(0, 7)}
+                  data={produtosMaisVendidos.slice(0, 7)}
                   cx="50%" cy="50%" innerRadius={65} outerRadius={110} paddingAngle={3}
                   dataKey="quantity" nameKey="name" labelLine={true}
                   label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                 >
-                  {(charts.produtos_mais_vendidos || []).slice(0, 7).map((_, i) => (
+                  {produtosMaisVendidos.slice(0, 7).map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
@@ -415,9 +369,9 @@ export default function Dashboard() {
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={[
-                { name: 'Receita', value: charts.lucro_vs_despesas?.receita || 0 },
-                { name: 'Despesas', value: charts.lucro_vs_despesas?.despesas || 0 },
-                { name: 'Lucro', value: charts.lucro_vs_despesas?.lucro || 0 },
+                { name: 'Receita', value: financialStats.receita_mes || 0 },
+                { name: 'Despesas', value: financialStats.despesas_mes || 0 },
+                { name: 'Lucro', value: financialStats.lucro_mes || 0 },
               ]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'var(--text-tertiary)' }} stroke="var(--border)" />
@@ -449,7 +403,7 @@ export default function Dashboard() {
       <div className="heatmap-section">
         <h3>Mapa de Calor - Pedidos por Região</h3>
         <div className="heatmap-grid">
-          {HEATMAP_REGIONS.map((region) => (
+          {heatmapRegions.map((region) => (
             <div key={region.name} className="heatmap-cell"
               style={{
                 background: `linear-gradient(135deg, ${getHeatColor(region.orders)}${Math.round(getHeatOpacity(region.orders) * 255).toString(16).padStart(2, '0')}, transparent)`,

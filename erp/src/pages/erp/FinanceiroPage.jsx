@@ -1,100 +1,40 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useData } from '../../contexts/DataContext';
 import {
   DollarSign, TrendingUp, TrendingDown, Receipt, BarChart3,
   CalendarDays, RefreshCw, Activity, TrendingUp as ChartIcon
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart as ReLineChart, Line,
-  AreaChart as ReAreaChart, Area
+  ResponsiveContainer, LineChart, Line,
+  AreaChart, Area
 } from 'recharts';
 import './FinanceiroPage.css';
-
-// =============================================
-// Mock Data
-// =============================================
-const MOCK_SUMMARY = {
-  week: { receitas: 8450.30, despesas: 3210.15, lucro: 5240.15, total_transacoes: 87 },
-  month: { receitas: 42870.35, despesas: 18432.50, lucro: 24437.85, total_transacoes: 342 },
-  year: { receitas: 512840.20, despesas: 218450.80, lucro: 294389.40, total_transacoes: 4128 },
-};
-
-const MOCK_FATURAMENTO_DIARIO = [
-  { dia: '01/07', receita: 1850.40, despesa: 620.10 },
-  { dia: '02/07', receita: 1920.55, despesa: 645.30 },
-  { dia: '03/07', receita: 1780.25, despesa: 580.75 },
-  { dia: '04/07', receita: 2050.80, despesa: 710.20 },
-  { dia: '05/07', receita: 2180.60, despesa: 750.45 },
-  { dia: '06/07', receita: 1350.30, despesa: 480.60 },
-  { dia: '07/07', receita: 1220.15, despesa: 410.25 },
-  { dia: '08/07', receita: 1890.70, despesa: 630.40 },
-  { dia: '09/07', receita: 1960.45, despesa: 660.85 },
-  { dia: '10/07', receita: 1750.30, despesa: 590.15 },
-  { dia: '11/07', receita: 2100.55, despesa: 720.30 },
-  { dia: '12/07', receita: 2200.80, despesa: 780.60 },
-  { dia: '13/07', receita: 1280.20, despesa: 430.45 },
-  { dia: '14/07', receita: 1250.40, despesa: 420.30 },
-  { dia: '15/07', receita: 1870.65, despesa: 640.20 },
-  { dia: '16/07', receita: 1940.30, despesa: 670.55 },
-  { dia: '17/07', receita: 1810.45, despesa: 610.70 },
-  { dia: '18/07', receita: 2080.90, despesa: 730.15 },
-  { dia: '19/07', receita: 2150.25, despesa: 760.40 },
-  { dia: '20/07', receita: 1310.80, despesa: 450.65 },
-  { dia: '21/07', receita: 1240.55, despesa: 415.30 },
-  { dia: '22/07', receita: 1900.30, despesa: 650.20 },
-  { dia: '23/07', receita: 1980.75, despesa: 680.45 },
-  { dia: '24/07', receita: 1790.40, despesa: 600.80 },
-  { dia: '25/07', receita: 2120.60, despesa: 740.35 },
-  { dia: '26/07', receita: 2190.85, despesa: 770.50 },
-  { dia: '27/07', receita: 1270.20, despesa: 440.25 },
-  { dia: '28/07', receita: 1230.45, despesa: 425.60 },
-  { dia: '29/07', receita: 1880.35, despesa: 645.40 },
-];
-
-const MOCK_RECEITAS_POR_SEMANA = [
-  { semana: 'Sem 1', receita: 12352.45, despesa: 4106.65 },
-  { semana: 'Sem 2', receita: 11531.80, despesa: 3951.90 },
-  { semana: 'Sem 3', receita: 11872.15, despesa: 4131.45 },
-  { semana: 'Sem 4', receita: 7114.95, despesa: 2242.50 },
-];
-
-const MOCK_LUCRO_ACUMULADO = [
-  { mes: 'Jan', lucro: 15200.00 },
-  { mes: 'Fev', lucro: 38450.00 },
-  { mes: 'Mar', lucro: 62100.00 },
-  { mes: 'Abr', lucro: 89340.00 },
-  { mes: 'Mai', lucro: 118750.00 },
-  { mes: 'Jun', lucro: 145230.00 },
-  { mes: 'Jul', lucro: 172840.00 },
-  { mes: 'Ago', lucro: 198560.00 },
-  { mes: 'Set', lucro: 224180.00 },
-  { mes: 'Out', lucro: 248970.00 },
-  { mes: 'Nov', lucro: 271640.00 },
-  { mes: 'Dez', lucro: 294389.40 },
-];
 
 // =============================================
 // Animated Counter Component
 // =============================================
 function AnimatedCounter({ value, prefix = '', suffix = '', decimals = 2 }) {
   const [display, setDisplay] = useState(0);
+  const timerRef = useRef(null);
 
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
     if (!value || value === 0) { setDisplay(0); return; }
     const duration = 800;
     const steps = 30;
     const increment = value / steps;
     let current = 0;
-    const timer = setInterval(() => {
+    timerRef.current = setInterval(() => {
       current += increment;
       if (current >= value) {
         setDisplay(value);
-        clearInterval(timer);
+        clearInterval(timerRef.current);
       } else {
         setDisplay(current);
       }
     }, duration / steps);
-    return () => clearInterval(timer);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [value]);
 
   const formatted = Number(display).toLocaleString('pt-BR', {
@@ -162,30 +102,149 @@ const PERIODS = [
   { key: 'year', label: 'Ano' },
 ];
 
+const DESPESA_RATIO = 0.65;
+
+function filterByPeriod(orders, period) {
+  const now = new Date();
+
+  if (period === 'week') {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const startISO = weekStart.toISOString();
+    return orders.filter(
+      (o) => o.created_at >= startISO && o.status !== 'cancelado'
+    );
+  }
+
+  if (period === 'month') {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    return orders.filter(
+      (o) => o.created_at >= monthStart && o.status !== 'cancelado'
+    );
+  }
+
+  if (period === 'year') {
+    const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
+    return orders.filter(
+      (o) => o.created_at >= yearStart && o.status !== 'cancelado'
+    );
+  }
+
+  return [];
+}
+
+function buildDailyLineData(orders) {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const today = now.getDate();
+
+  const result = [];
+  for (let d = 1; d <= today; d++) {
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), d, 0, 0, 0).toISOString();
+    const dayEnd = new Date(now.getFullYear(), now.getMonth(), d, 23, 59, 59, 999).toISOString();
+
+    const dayOrders = orders.filter(
+      (o) => o.created_at >= dayStart && o.created_at <= dayEnd && o.status !== 'cancelado'
+    );
+
+    const receita = dayOrders.reduce((acc, o) => acc + o.total, 0);
+    const despesa = receita * DESPESA_RATIO;
+
+    result.push({
+      dia: `${String(d).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`,
+      receita: Number(receita.toFixed(2)),
+      despesa: Number(despesa.toFixed(2)),
+    });
+  }
+  return result;
+}
+
+function buildWeeklyBarData(orders) {
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const totalWeeks = Math.ceil(daysInMonth / 7);
+
+  const result = [];
+  for (let w = 0; w < totalWeeks; w++) {
+    const weekDayStart = w * 7 + 1;
+    const weekDayEnd = Math.min((w + 1) * 7, daysInMonth);
+    const today = now.getDate();
+
+    if (weekDayStart > today) break;
+
+    const actualEnd = Math.min(weekDayEnd, today);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), weekDayStart, 0, 0, 0).toISOString();
+    const weekEnd = new Date(now.getFullYear(), now.getMonth(), actualEnd, 23, 59, 59, 999).toISOString();
+
+    const weekOrders = orders.filter(
+      (o) => o.created_at >= weekStart && o.created_at <= weekEnd && o.status !== 'cancelado'
+    );
+
+    const receita = weekOrders.reduce((acc, o) => acc + o.total, 0);
+    const despesa = receita * DESPESA_RATIO;
+
+    result.push({
+      semana: `Sem ${w + 1}`,
+      receita: Number(receita.toFixed(2)),
+      despesa: Number(despesa.toFixed(2)),
+    });
+  }
+  return result;
+}
+
+function buildMonthlyAreaData(orders) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const currentMonth = now.getMonth();
+
+  let acumulado = 0;
+  const result = [];
+
+  for (let m = 0; m <= currentMonth; m++) {
+    const monthStart = new Date(year, m, 1).toISOString();
+    const monthEnd = new Date(year, m + 1, 0, 23, 59, 59, 999).toISOString();
+
+    const monthOrders = orders.filter(
+      (o) => o.created_at >= monthStart && o.created_at <= monthEnd && o.status !== 'cancelado'
+    );
+
+    const receita = monthOrders.reduce((acc, o) => acc + o.total, 0);
+    const despesa = receita * DESPESA_RATIO;
+    acumulado += receita - despesa;
+
+    result.push({
+      mes: monthNames[m],
+      lucro: Number(acumulado.toFixed(2)),
+    });
+  }
+  return result;
+}
+
 // =============================================
 // Main Financeiro Page Component
 // =============================================
 export default function FinanceiroPage() {
-  const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('month');
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [period]);
+  const { orders, financialStats } = useData();
 
   const formatCurrency = (value) =>
     `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  const summary = MOCK_SUMMARY[period] || MOCK_SUMMARY.month;
-  const receitas = summary.receitas || 0;
-  const despesas = summary.despesas || 0;
-  const lucro = summary.lucro || 0;
-  const totalTransacoes = summary.total_transacoes || 0;
+  const periodOrders = useMemo(() => filterByPeriod(orders, period), [orders, period]);
 
-  const barData = MOCK_RECEITAS_POR_SEMANA;
-  const lineData = MOCK_FATURAMENTO_DIARIO;
-  const areaData = MOCK_LUCRO_ACUMULADO;
+  const receitas = useMemo(
+    () => periodOrders.reduce((acc, o) => acc + o.total, 0),
+    [periodOrders]
+  );
+  const despesas = receitas * DESPESA_RATIO;
+  const lucro = receitas - despesas;
+  const totalTransacoes = periodOrders.length;
+
+  const lineData = useMemo(() => buildDailyLineData(orders), [orders]);
+  const barData = useMemo(() => buildWeeklyBarData(orders), [orders]);
+  const areaData = useMemo(() => buildMonthlyAreaData(orders), [orders]);
 
   const tickInterval = barData.length > 6 ? 1 : 0;
 
@@ -222,8 +281,6 @@ export default function FinanceiroPage() {
     },
   ], [receitas, despesas, lucro]);
 
-  if (loading) return <FinanceiroSkeleton />;
-
   return (
     <div className="financeiro-page">
       {/* Header */}
@@ -238,10 +295,7 @@ export default function FinanceiroPage() {
               <button
                 key={p.key}
                 className={`period-btn ${period === p.key ? 'active' : ''}`}
-                onClick={() => {
-                  setLoading(true);
-                  setPeriod(p.key);
-                }}
+                onClick={() => setPeriod(p.key)}
               >
                 {p.key === 'week' && <CalendarDays size={14} />}
                 {p.key === 'month' && <BarChart3 size={14} />}
@@ -250,7 +304,7 @@ export default function FinanceiroPage() {
               </button>
             ))}
           </div>
-          <button className="refresh-btn" onClick={() => { setLoading(true); setTimeout(() => setLoading(false), 400); }} title="Atualizar dados">
+          <button className="refresh-btn" onClick={() => setPeriod(period)} title="Atualizar dados">
             <RefreshCw size={16} />
             Atualizar
           </button>
@@ -308,14 +362,14 @@ export default function FinanceiroPage() {
         </div>
         <div className="chart-container">
           <ResponsiveContainer width="100%" height={280}>
-            <ReLineChart data={lineData}>
+            <LineChart data={lineData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} vertical={false} />
               <XAxis dataKey="dia" tick={{ fontSize: 12, fill: 'var(--text-tertiary)' }} stroke="var(--border)" axisLine={{ stroke: 'var(--border)', strokeOpacity: 0.5 }} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} stroke="var(--border)" tickFormatter={(v) => `R$${v}`} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip formatter={(v) => formatCurrency(v)} />} cursor={{ fill: 'var(--bg-tertiary)', opacity: 0.5 }} />
               <Line type="monotone" dataKey="receita" name="Receitas" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#10b981' }} activeDot={{ r: 5 }} />
               <Line type="monotone" dataKey="despesa" name="Despesas" stroke="#ef4444" strokeWidth={2} dot={{ r: 3, fill: '#ef4444' }} activeDot={{ r: 5 }} />
-            </ReLineChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -356,7 +410,7 @@ export default function FinanceiroPage() {
         </div>
         <div className="chart-container">
           <ResponsiveContainer width="100%" height={280}>
-            <ReAreaChart data={areaData}>
+            <AreaChart data={areaData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.5} vertical={false} />
               <XAxis dataKey="mes" tick={{ fontSize: 12, fill: 'var(--text-tertiary)' }} stroke="var(--border)" axisLine={{ stroke: 'var(--border)', strokeOpacity: 0.5 }} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: 'var(--text-tertiary)' }} stroke="var(--border)" tickFormatter={(v) => `R$${v}`} axisLine={false} tickLine={false} />
@@ -368,7 +422,7 @@ export default function FinanceiroPage() {
                 </linearGradient>
               </defs>
               <Area type="monotone" dataKey="lucro" name="Lucro Acumulado" stroke="#fc6901" strokeWidth={2} fill="url(#lucroGradient)" dot={{ r: 3, fill: '#fc6901' }} activeDot={{ r: 5 }} />
-            </ReAreaChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>

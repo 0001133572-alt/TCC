@@ -28,9 +28,11 @@ import erpRoutes from './routes/erp/index.js';
 import deliveryRoutes from './routes/delivery/index.js';
 import authRoutes from './routes/auth/index.js';
 import clientRoutes from './routes/clients/index.js';
+import paymentsRouter from './routes/erp/payments.js';
 
 // Usar rotas
 app.use('/api/erp', erpRoutes);
+app.use('/api/erp', paymentsRouter);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);

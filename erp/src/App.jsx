@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DataProvider } from './contexts/DataContext';
 import LoginPage from './pages/LoginPage';
 import Layout from './pages/erp/Layout';
 import Dashboard from './pages/erp/Dashboard';
@@ -13,7 +14,7 @@ import MotoboyPage from './pages/erp/MotoboyPage';
 import ConfigPage from './pages/erp/ConfigPage';
 import CupomFiscalPage from './pages/erp/CupomFiscalPage.jsx';
 import EstoqueInsumos from './pages/erp/EstoqueInsumos.jsx';
-import PortalCliente from './pages/portal/PortalCliente.jsx';
+
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -25,7 +26,6 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/portal" element={<PortalCliente />} />
       <Route path="/erp/*" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Navigate to="/erp/dashboard" />} />
         <Route path="dashboard" element={<Dashboard />} />
@@ -49,9 +49,11 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <DataProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </DataProvider>
     </AuthProvider>
   );
 }
