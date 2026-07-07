@@ -134,92 +134,216 @@ function filterByPeriod(orders, period) {
   return [];
 }
 
-function buildDailyLineData(orders) {
+function buildDailyLineData(orders, period) {
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const today = now.getDate();
-
-  const result = [];
-  for (let d = 1; d <= today; d++) {
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), d, 0, 0, 0).toISOString();
-    const dayEnd = new Date(now.getFullYear(), now.getMonth(), d, 23, 59, 59, 999).toISOString();
-
-    const dayOrders = orders.filter(
-      (o) => o.created_at >= dayStart && o.created_at <= dayEnd && o.status !== 'cancelado'
-    );
-
-    const receita = dayOrders.reduce((acc, o) => acc + o.total, 0);
-    const despesa = receita * DESPESA_RATIO;
-
-    result.push({
-      dia: `${String(d).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`,
-      receita: Number(receita.toFixed(2)),
-      despesa: Number(despesa.toFixed(2)),
-    });
-  }
-  return result;
-}
-
-function buildWeeklyBarData(orders) {
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const totalWeeks = Math.ceil(daysInMonth / 7);
-
-  const result = [];
-  for (let w = 0; w < totalWeeks; w++) {
-    const weekDayStart = w * 7 + 1;
-    const weekDayEnd = Math.min((w + 1) * 7, daysInMonth);
-    const today = now.getDate();
-
-    if (weekDayStart > today) break;
-
-    const actualEnd = Math.min(weekDayEnd, today);
-    const weekStart = new Date(now.getFullYear(), now.getMonth(), weekDayStart, 0, 0, 0).toISOString();
-    const weekEnd = new Date(now.getFullYear(), now.getMonth(), actualEnd, 23, 59, 59, 999).toISOString();
-
-    const weekOrders = orders.filter(
-      (o) => o.created_at >= weekStart && o.created_at <= weekEnd && o.status !== 'cancelado'
-    );
-
-    const receita = weekOrders.reduce((acc, o) => acc + o.total, 0);
-    const despesa = receita * DESPESA_RATIO;
-
-    result.push({
-      semana: `Sem ${w + 1}`,
-      receita: Number(receita.toFixed(2)),
-      despesa: Number(despesa.toFixed(2)),
-    });
-  }
-  return result;
-}
-
-function buildMonthlyAreaData(orders) {
-  const now = new Date();
-  const year = now.getFullYear();
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const currentMonth = now.getMonth();
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-  let acumulado = 0;
-  const result = [];
-
-  for (let m = 0; m <= currentMonth; m++) {
-    const monthStart = new Date(year, m, 1).toISOString();
-    const monthEnd = new Date(year, m + 1, 0, 23, 59, 59, 999).toISOString();
-
-    const monthOrders = orders.filter(
-      (o) => o.created_at >= monthStart && o.created_at <= monthEnd && o.status !== 'cancelado'
-    );
-
-    const receita = monthOrders.reduce((acc, o) => acc + o.total, 0);
-    const despesa = receita * DESPESA_RATIO;
-    acumulado += receita - despesa;
-
-    result.push({
-      mes: monthNames[m],
-      lucro: Number(acumulado.toFixed(2)),
-    });
+  if (period === 'week') {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const result = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      if (d > now) break;
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0).toISOString();
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).toISOString();
+      const dayOrders = orders.filter((o) => o.created_at >= dayStart && o.created_at <= dayEnd && o.status !== 'cancelado');
+      const receita = dayOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      result.push({
+        dia: dayNames[d.getDay()],
+        receita: Number(receita.toFixed(2)),
+        despesa: Number(despesa.toFixed(2)),
+      });
+    }
+    return result;
   }
-  return result;
+
+  if (period === 'month') {
+    const today = now.getDate();
+    const result = [];
+    for (let d = 1; d <= today; d++) {
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), d, 0, 0, 0).toISOString();
+      const dayEnd = new Date(now.getFullYear(), now.getMonth(), d, 23, 59, 59, 999).toISOString();
+      const dayOrders = orders.filter((o) => o.created_at >= dayStart && o.created_at <= dayEnd && o.status !== 'cancelado');
+      const receita = dayOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      result.push({
+        dia: `${String(d).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`,
+        receita: Number(receita.toFixed(2)),
+        despesa: Number(despesa.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  if (period === 'year') {
+    const result = [];
+    for (let m = 0; m <= now.getMonth(); m++) {
+      const monthStart = new Date(now.getFullYear(), m, 1).toISOString();
+      const monthEnd = new Date(now.getFullYear(), m + 1, 0, 23, 59, 59, 999).toISOString();
+      const monthOrders = orders.filter((o) => o.created_at >= monthStart && o.created_at <= monthEnd && o.status !== 'cancelado');
+      const receita = monthOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      result.push({
+        dia: monthNames[m],
+        receita: Number(receita.toFixed(2)),
+        despesa: Number(despesa.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  return [];
+}
+
+function buildWeeklyBarData(orders, period) {
+  const now = new Date();
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+  if (period === 'week') {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const result = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      if (d > now) break;
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0).toISOString();
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).toISOString();
+      const dayOrders = orders.filter((o) => o.created_at >= dayStart && o.created_at <= dayEnd && o.status !== 'cancelado');
+      const receita = dayOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      result.push({
+        semana: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`,
+        receita: Number(receita.toFixed(2)),
+        despesa: Number(despesa.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  if (period === 'month') {
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const totalWeeks = Math.ceil(daysInMonth / 7);
+    const result = [];
+    for (let w = 0; w < totalWeeks; w++) {
+      const weekDayStart = w * 7 + 1;
+      const weekDayEnd = Math.min((w + 1) * 7, daysInMonth);
+      const today = now.getDate();
+      if (weekDayStart > today) break;
+      const actualEnd = Math.min(weekDayEnd, today);
+      const wStart = new Date(now.getFullYear(), now.getMonth(), weekDayStart, 0, 0, 0).toISOString();
+      const wEnd = new Date(now.getFullYear(), now.getMonth(), actualEnd, 23, 59, 59, 999).toISOString();
+      const weekOrders = orders.filter((o) => o.created_at >= wStart && o.created_at <= wEnd && o.status !== 'cancelado');
+      const receita = weekOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      result.push({
+        semana: `Sem ${w + 1}`,
+        receita: Number(receita.toFixed(2)),
+        despesa: Number(despesa.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  if (period === 'year') {
+    const result = [];
+    for (let m = 0; m <= now.getMonth(); m++) {
+      const monthStart = new Date(now.getFullYear(), m, 1).toISOString();
+      const monthEnd = new Date(now.getFullYear(), m + 1, 0, 23, 59, 59, 999).toISOString();
+      const monthOrders = orders.filter((o) => o.created_at >= monthStart && o.created_at <= monthEnd && o.status !== 'cancelado');
+      const receita = monthOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      result.push({
+        semana: monthNames[m],
+        receita: Number(receita.toFixed(2)),
+        despesa: Number(despesa.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  return [];
+}
+
+function buildMonthlyAreaData(orders, period) {
+  const now = new Date();
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  if (period === 'week') {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    let acumulado = 0;
+    const result = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      if (d > now) break;
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0).toISOString();
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).toISOString();
+      const dayOrders = orders.filter((o) => o.created_at >= dayStart && o.created_at <= dayEnd && o.status !== 'cancelado');
+      const receita = dayOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      acumulado += receita - despesa;
+      result.push({
+        mes: dayNames[d.getDay()],
+        lucro: Number(acumulado.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  if (period === 'month') {
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const totalWeeks = Math.ceil(daysInMonth / 7);
+    let acumulado = 0;
+    const result = [];
+    for (let w = 0; w < totalWeeks; w++) {
+      const weekDayStart = w * 7 + 1;
+      const weekDayEnd = Math.min((w + 1) * 7, daysInMonth);
+      const today = now.getDate();
+      if (weekDayStart > today) break;
+      const actualEnd = Math.min(weekDayEnd, today);
+      const wStart = new Date(now.getFullYear(), now.getMonth(), weekDayStart, 0, 0, 0).toISOString();
+      const wEnd = new Date(now.getFullYear(), now.getMonth(), actualEnd, 23, 59, 59, 999).toISOString();
+      const weekOrders = orders.filter((o) => o.created_at >= wStart && o.created_at <= wEnd && o.status !== 'cancelado');
+      const receita = weekOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      acumulado += receita - despesa;
+      result.push({
+        mes: `Sem ${w + 1}`,
+        lucro: Number(acumulado.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  if (period === 'year') {
+    let acumulado = 0;
+    const result = [];
+    for (let m = 0; m <= now.getMonth(); m++) {
+      const monthStart = new Date(now.getFullYear(), m, 1).toISOString();
+      const monthEnd = new Date(now.getFullYear(), m + 1, 0, 23, 59, 59, 999).toISOString();
+      const monthOrders = orders.filter((o) => o.created_at >= monthStart && o.created_at <= monthEnd && o.status !== 'cancelado');
+      const receita = monthOrders.reduce((acc, o) => acc + o.total, 0);
+      const despesa = receita * DESPESA_RATIO;
+      acumulado += receita - despesa;
+      result.push({
+        mes: monthNames[m],
+        lucro: Number(acumulado.toFixed(2)),
+      });
+    }
+    return result;
+  }
+
+  return [];
 }
 
 // =============================================
@@ -227,12 +351,13 @@ function buildMonthlyAreaData(orders) {
 // =============================================
 export default function FinanceiroPage() {
   const [period, setPeriod] = useState('month');
+  const [refreshKey, setRefreshKey] = useState(0);
   const { orders, financialStats } = useData();
 
   const formatCurrency = (value) =>
     `R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  const periodOrders = useMemo(() => filterByPeriod(orders, period), [orders, period]);
+  const periodOrders = useMemo(() => filterByPeriod(orders, period), [orders, period, refreshKey]);
 
   const receitas = useMemo(
     () => periodOrders.reduce((acc, o) => acc + o.total, 0),
@@ -242,11 +367,11 @@ export default function FinanceiroPage() {
   const lucro = receitas - despesas;
   const totalTransacoes = periodOrders.length;
 
-  const lineData = useMemo(() => buildDailyLineData(orders), [orders]);
-  const barData = useMemo(() => buildWeeklyBarData(orders), [orders]);
-  const areaData = useMemo(() => buildMonthlyAreaData(orders), [orders]);
+  const lineData = useMemo(() => buildDailyLineData(periodOrders, period), [periodOrders, period]);
+  const barData = useMemo(() => buildWeeklyBarData(periodOrders, period), [periodOrders, period]);
+  const areaData = useMemo(() => buildMonthlyAreaData(periodOrders, period), [periodOrders, period]);
 
-  const tickInterval = barData.length > 6 ? 1 : 0;
+  const tickInterval = barData.length > 8 ? 1 : 0;
 
   const metricCards = useMemo(() => [
     {
@@ -304,7 +429,7 @@ export default function FinanceiroPage() {
               </button>
             ))}
           </div>
-          <button className="refresh-btn" onClick={() => setPeriod(period)} title="Atualizar dados">
+          <button className="refresh-btn" onClick={() => setRefreshKey(k => k + 1)} title="Atualizar dados">
             <RefreshCw size={16} />
             Atualizar
           </button>
