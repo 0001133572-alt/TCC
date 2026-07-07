@@ -245,6 +245,28 @@ export default function ClientesPage() {
     'Status': STATUS_CONFIG[c.status]?.label || c.status,
   }));
 
+  const extrairCliente = (client) => {
+    const data = [{
+      'Nome': client.name,
+      'Telefone': client.phone,
+      'E-mail': client.email || '—',
+      'Cidade': client.city || '—',
+      'Rua': client.street || '—',
+      'Número': client.number || '—',
+      'Complemento': client.complement || '—',
+      'CEP': client.cep || '—',
+      'Pedidos': client.total_pedidos,
+      'Total Gasto': formatCurrency(client.total_gasto),
+      'Último Pedido': formatDate(client.last_order_at),
+      'Status': STATUS_CONFIG[client.status]?.label || client.status,
+    }];
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length, String(data[0][key]).length) + 4 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, client.name);
+    XLSX.writeFile(wb, `extracao-${client.name.replace(/\s+/g, '_')}.xlsx`);
+  };
+
   const exportCSV = () => {
     const data = getExportData();
     const headers = Object.keys(data[0] || {});
@@ -465,7 +487,7 @@ export default function ClientesPage() {
                           <span className="cliente-name">{client.name}</span>
                           <span className="cliente-email">{client.email}</span>
                         </div>
-                        <button className="btn-extracao" title="Extração de dados">
+                        <button className="btn-extracao" title="Extração de dados" onClick={() => extrairCliente(client)}>
                           <Download size={14} />
                           Extração
                         </button>
