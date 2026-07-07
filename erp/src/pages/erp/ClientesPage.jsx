@@ -5,7 +5,7 @@ import {
   Search, Users, UserCheck, UserPlus, Plus, FileDown, Phone, MapPin,
   Package, TrendingUp, X, MoreVertical, Eye, Edit, ShoppingCart,
   History, FileText, Trash2, ChevronDown, ChevronUp, Filter, ArrowUpDown,
-  ChevronRight, Mail, Calendar, StickyNote
+  ChevronRight, Mail, Calendar, StickyNote, Download
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import './ClientesPage.css';
@@ -465,6 +465,10 @@ export default function ClientesPage() {
                           <span className="cliente-name">{client.name}</span>
                           <span className="cliente-email">{client.email}</span>
                         </div>
+                        <button className="btn-extracao" title="Extração de dados">
+                          <Download size={14} />
+                          Extração
+                        </button>
                       </div>
                     </td>
                     <td><Phone size={13} className="cell-icon" /> {client.phone}</td>

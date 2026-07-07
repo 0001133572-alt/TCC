@@ -344,6 +344,29 @@
   text-overflow: ellipsis;
 }
 
+.btn-extracao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--primary-lighter);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-extracao:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
 /* === Status Badge === */
 .status-badge {
   display: inline-flex;
