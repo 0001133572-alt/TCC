@@ -245,26 +245,41 @@ export default function ClientesPage() {
     'Status': STATUS_CONFIG[c.status]?.label || c.status,
   }));
 
-  const extrairCliente = (client) => {
-    const data = [{
-      'Nome': client.name,
-      'Telefone': client.phone,
-      'E-mail': client.email || '—',
-      'Cidade': client.city || '—',
-      'Rua': client.street || '—',
-      'Número': client.number || '—',
-      'Complemento': client.complement || '—',
-      'CEP': client.cep || '—',
-      'Pedidos': client.total_pedidos,
-      'Total Gasto': formatCurrency(client.total_gasto),
-      'Último Pedido': formatDate(client.last_order_at),
-      'Status': STATUS_CONFIG[client.status]?.label || client.status,
-    }];
-    const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length, String(data[0][key]).length) + 4 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, client.name);
-    XLSX.writeFile(wb, `extracao-${client.name.replace(/\s+/g, '_')}.xlsx`);
+  const extrairCliente = async (client) => {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text('Extracao de Cliente', 14, 20);
+
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    let y = 35;
+
+    const fields = [
+      ['Nome', client.name],
+      ['Telefone', client.phone],
+      ['E-mail', client.email || '—'],
+      ['Cidade', client.city || '—'],
+      ['Rua', client.street || '—'],
+      ['Numero', client.number || '—'],
+      ['Complemento', client.complement || '—'],
+      ['CEP', client.cep || '—'],
+      ['Total de Pedidos', String(client.total_pedidos)],
+      ['Total Gasto', formatCurrency(client.total_gasto)],
+      ['Ultimo Pedido', formatDate(client.last_order_at)],
+      ['Status', STATUS_CONFIG[client.status]?.label || client.status],
+    ];
+
+    fields.forEach(([label, value]) => {
+      doc.setTextColor(80);
+      doc.text(`${label}:`, 14, y);
+      doc.setTextColor(30);
+      doc.text(String(value), 70, y);
+      y += 8;
+    });
+
+    doc.save(`extracao-${client.name.replace(/\s+/g, '_')}.pdf`);
   };
 
   const exportCSV = () => {
