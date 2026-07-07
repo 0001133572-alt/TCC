@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search, Plus, X, Eye, Clock, CheckCircle, XCircle, ChevronRight,
   Package, User, CreditCard, FileText, Copy, RefreshCw,
@@ -42,6 +43,7 @@ const DELIVERY_FEE = 5.99;
 
 export default function PedidosPage() {
   const { orders, clients, products, addOrder, updateOrderStatus, cancelOrder, pixPayments, createPixPayment, getPixPaymentByOrderId, pollPixPaymentStatus } = useData();
+  const [searchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -67,6 +69,14 @@ export default function PedidosPage() {
   const [selectedPixPayment, setSelectedPixPayment] = useState(null);
   const [pixLoading, setPixLoading] = useState(false);
   const [pixError, setPixError] = useState(null);
+
+  useEffect(() => {
+    const clientId = searchParams.get('client_id');
+    if (clientId) {
+      setFormData(prev => ({ ...prev, client_id: Number(clientId) }));
+      setShowNewOrder(true);
+    }
+  }, [searchParams]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {

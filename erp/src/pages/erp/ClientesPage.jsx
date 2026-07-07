@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import {
   Search, Users, UserCheck, UserPlus, Plus, FileDown, Phone, MapPin,
@@ -29,7 +30,8 @@ function getInitials(name) {
 }
 
 export default function ClientesPage() {
-  const { clients: rawClients, orders, addClient } = useData();
+  const { clients: rawClients, orders, addClient, deleteClient, updateClient } = useData();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('todos');
   const [sortField, setSortField] = useState('name');
@@ -40,6 +42,10 @@ export default function ClientesPage() {
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
   const [viewMode, setViewMode] = useState('table');
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [deleteConfirmClient, setDeleteConfirmClient] = useState(null);
+  const [historyClient, setHistoryClient] = useState(null);
   const menuRef = useRef(null);
   const exportMenuRef = useRef(null);
   const tableRef = useRef(null);
@@ -167,7 +173,63 @@ export default function ClientesPage() {
 
   const handleDelete = (id) => {
     setActionMenuOpen(null);
-    if (drawerOpen && selectedClient?.id === id) closeDrawer();
+    const client = clients.find(c => c.id === id);
+    setDeleteConfirmClient(client);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmClient) {
+      deleteClient(deleteConfirmClient.id);
+      if (drawerOpen && selectedClient?.id === deleteConfirmClient.id) closeDrawer();
+      setDeleteConfirmClient(null);
+    }
+  };
+
+  const openEditModal = (client) => {
+    setEditingClient(client);
+    setForm({
+      name: client.name || '',
+      phone: client.phone || '',
+      email: client.email || '',
+      cep: client.cep || '',
+      city: client.city || '',
+      street: client.street || '',
+      number: client.number || '',
+      complement: client.complement || '',
+    });
+    setEditModalOpen(true);
+    setActionMenuOpen(null);
+  };
+
+  const handleEditSave = () => {
+    if (!form.name || !form.phone || !editingClient) return;
+    updateClient(editingClient.id, {
+      name: form.name,
+      phone: form.phone,
+      email: form.email,
+      cep: form.cep,
+      city: form.city,
+      street: form.street,
+      number: form.number,
+      complement: form.complement,
+    });
+    setEditModalOpen(false);
+    setEditingClient(null);
+  };
+
+  const openNewOrder = (client) => {
+    setActionMenuOpen(null);
+    navigate(`/erp/pedidos?client_id=${client.id}`);
+  };
+
+  const openHistory = (client) => {
+    setHistoryClient(client);
+    setActionMenuOpen(null);
+  };
+
+  const openCupomFiscal = (client) => {
+    setActionMenuOpen(null);
+    navigate('/erp/cupom-fiscal');
   };
 
   const handleFormChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
@@ -419,10 +481,11 @@ export default function ClientesPage() {
                         {actionMenuOpen === client.id && (
                           <div className="action-dropdown">
                             <button onClick={() => openDrawer(client)}><Eye size={14} /> Visualizar</button>
-                            <button onClick={() => {}}><Edit size={14} /> Editar</button>
-                            <button onClick={() => {}}><ShoppingCart size={14} /> Novo Pedido</button>
-                            <button onClick={() => {}}><History size={14} /> Histórico</button>
-                            <button onClick={() => {}}><FileText size={14} /> Emitir Cupom Fiscal</button>
+                            <button onClick={() => openEditModal(client)}><Edit size={14} /> Editar</button>
+                            <button onClick={() => openNewOrder(client)}><ShoppingCart size={14} /> Novo Pedido</button>
+                            <div className="action-divider" />
+                            <button onClick={() => openHistory(client)}><History size={14} /> Histórico</button>
+                            <button onClick={() => openCupomFiscal(client)}><FileText size={14} /> Emitir Cupom Fiscal</button>
                             <div className="action-divider" />
                             <button className="action-danger" onClick={() => handleDelete(client.id)}><Trash2 size={14} /> Excluir</button>
                           </div>
@@ -543,6 +606,124 @@ export default function ClientesPage() {
             <div className="modal-footer">
               <button className="btn-cancel" onClick={closeModal}>Cancelar</button>
               <button className="btn-save" onClick={handleSave} disabled={!form.name || !form.phone}>Salvar Cliente</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editModalOpen && (
+        <div className="modal-overlay" onClick={() => setEditModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Editar Cliente</h2>
+              <button className="btn-close" onClick={() => setEditModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Nome *</label>
+                <input type="text" value={form.name} onChange={e => handleFormChange('name', e.target.value)} placeholder="Nome do cliente" />
+              </div>
+              <div className="form-row form-row-2">
+                <div className="form-group">
+                  <label>Telefone *</label>
+                  <input type="tel" value={form.phone} onChange={e => handleFormChange('phone', e.target.value)} placeholder="(00) 00000-0000" />
+                </div>
+                <div className="form-group">
+                  <label>E-mail</label>
+                  <input type="email" value={form.email} onChange={e => handleFormChange('email', e.target.value)} placeholder="email@exemplo.com" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>CEP</label>
+                <input type="text" value={form.cep} onChange={e => handleFormChange('cep', e.target.value)} placeholder="00000-000" />
+              </div>
+              <div className="form-row form-row-3">
+                <div className="form-group">
+                  <label>Cidade</label>
+                  <input type="text" value={form.city} onChange={e => handleFormChange('city', e.target.value)} placeholder="Cidade" />
+                </div>
+                <div className="form-group">
+                  <label>Rua</label>
+                  <input type="text" value={form.street} onChange={e => handleFormChange('street', e.target.value)} placeholder="Nome da rua" />
+                </div>
+                <div className="form-group">
+                  <label>Número</label>
+                  <input type="text" value={form.number} onChange={e => handleFormChange('number', e.target.value)} placeholder="Nº" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Complemento</label>
+                <input type="text" value={form.complement} onChange={e => handleFormChange('complement', e.target.value)} placeholder="Apto, sala..." />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setEditModalOpen(false)}>Cancelar</button>
+              <button className="btn-save" onClick={handleEditSave} disabled={!form.name || !form.phone}>Salvar Alterações</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmClient && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirmClient(null)}>
+          <div className="modal-content modal-confirm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Excluir Cliente</h2>
+              <button className="btn-close" onClick={() => setDeleteConfirmClient(null)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <p>Tem certeza que deseja excluir <strong>{deleteConfirmClient.name}</strong>?</p>
+              <p style={{color: 'var(--text-tertiary)', fontSize: '13px', marginTop: 8}}>Esta ação não pode ser desfeita.</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setDeleteConfirmClient(null)}>Cancelar</button>
+              <button className="btn-delete" onClick={confirmDelete}>Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {historyClient && (
+        <div className="modal-overlay" onClick={() => setHistoryClient(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Histórico de Pedidos — {historyClient.name}</h2>
+              <button className="btn-close" onClick={() => setHistoryClient(null)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              {orders.filter(o => o.client_id === historyClient.id || o.client_name === historyClient.name).length === 0 ? (
+                <p style={{color: 'var(--text-tertiary)', textAlign: 'center', padding: '32px 0'}}>Nenhum pedido encontrado para este cliente.</p>
+              ) : (
+                <div className="history-list">
+                  {orders
+                    .filter(o => o.client_id === historyClient.id || o.client_name === historyClient.name)
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .map(order => (
+                      <div key={order.id} className="history-item">
+                        <div className="history-item-header">
+                          <span className="history-order-number">#{order.order_number || order.id}</span>
+                          <span className={`status-badge status-${order.status}`}>{order.status}</span>
+                        </div>
+                        <div className="history-item-details">
+                          <span>{new Date(order.created_at).toLocaleDateString('pt-BR')}</span>
+                          <span>{order.payment_method === 'pix' ? 'PIX' : order.payment_method === 'credit' ? 'Crédito' : order.payment_method === 'debit' ? 'Débito' : 'Dinheiro'}</span>
+                          <span style={{fontWeight: 600}}>R$ {(order.total || 0).toFixed(2)}</span>
+                        </div>
+                        {order.items && order.items.length > 0 && (
+                          <div className="history-item-products">
+                            {order.items.map((item, idx) => (
+                              <span key={idx}>{item.name} x{item.quantity}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
             </div>
           </div>
         </div>

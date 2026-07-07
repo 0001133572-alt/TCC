@@ -757,6 +757,16 @@ export function DataProvider({ children }) {
     return newClient;
   }, [clients]);
 
+  const deleteClient = useCallback((clientId) => {
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+  }, []);
+
+  const updateClient = useCallback((clientId, clientData) => {
+    setClients((prev) => prev.map(c =>
+      c.id === clientId ? { ...c, ...clientData } : c
+    ));
+  }, []);
+
   const createPixPayment = useCallback(async (orderId, amount, description) => {
     const result = await paymentService.createPixPayment({
       amount,
@@ -980,6 +990,8 @@ export function DataProvider({ children }) {
       checkLowStock,
       updatePaymentStatus,
       addClient,
+      deleteClient,
+      updateClient,
       getClientStats,
       createPixPayment,
       getPixPaymentByOrderId,
@@ -1004,6 +1016,8 @@ export function DataProvider({ children }) {
       checkLowStock,
       updatePaymentStatus,
       addClient,
+      deleteClient,
+      updateClient,
       getClientStats,
       createPixPayment,
       getPixPaymentByOrderId,

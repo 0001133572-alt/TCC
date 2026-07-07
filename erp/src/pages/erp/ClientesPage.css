@@ -360,12 +360,12 @@
 .action-cell { position: relative; }
 
 .action-toggle {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
@@ -383,38 +383,75 @@
   position: absolute;
   right: 0;
   top: 100%;
-  margin-top: 4px;
+  margin-top: 6px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
-  min-width: 200px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  width: 220px;
   z-index: 100;
-  animation: fadeInDown 0.15s ease-out;
+  animation: dropdownFadeIn 0.18s ease-out;
   overflow: hidden;
+  padding: 6px 0;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .action-dropdown button {
   width: 100%;
-  padding: 10px 16px;
+  height: 44px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   gap: 10px;
   background: none;
   border: none;
   color: var(--text-primary);
-  font-size: var(--font-sm);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: all var(--transition-fast);
   text-align: left;
 }
 
-.action-dropdown button:hover { background: var(--primary-lighter); }
-.action-dropdown button svg { color: var(--text-tertiary); }
-.action-divider { height: 1px; background: var(--border); margin: 4px 0; }
-.action-danger { color: var(--red) !important; }
-.action-danger:hover { background: var(--red-light) !important; }
-.action-danger svg { color: var(--red) !important; }
+.action-dropdown button svg {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.action-dropdown button:hover {
+  background: var(--primary-lighter);
+  color: var(--primary);
+}
+
+.action-dropdown button:hover svg {
+  color: var(--primary);
+}
+
+.action-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 12px;
+}
+
+.action-danger {
+  color: var(--red) !important;
+}
+
+.action-danger svg {
+  color: var(--red) !important;
+}
+
+.action-danger:hover {
+  background: var(--red-light) !important;
+  color: var(--red) !important;
+}
 
 /* === Empty State === */
 .clientes-empty {
@@ -956,4 +993,77 @@
   .clientes-header h1 {
     font-size: var(--font-xl);
   }
+}
+
+/* === Delete Confirm Modal === */
+.modal-confirm .modal-body {
+  padding: 24px 32px;
+}
+
+.modal-confirm .modal-body p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.btn-delete {
+  background: var(--red);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-delete:hover {
+  filter: brightness(0.9);
+}
+
+/* === History Modal === */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.history-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.history-order-number {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: var(--font-sm);
+}
+
+.history-item-details {
+  display: flex;
+  gap: 16px;
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.history-item-products {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
 }
