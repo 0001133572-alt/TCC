@@ -79,7 +79,7 @@ export default function Layout() {
       navigate(target, { replace: true });
     }
   }, [location.pathname, user, navigate]);
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
 
   // Sincronizar tema entre abas
   useEffect(() => {
@@ -110,8 +110,13 @@ export default function Layout() {
   useEffect(() => {
     const handler = () => {
       const mobile = window.innerWidth <= 768;
-      if (!mobile) setSidebarOpen(true);
+      setIsMobile(mobile);
+      if (!mobile) {
+        setSidebarOpen(true);
+        setMobileOpen(false);
+      }
     };
+    handler();
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);

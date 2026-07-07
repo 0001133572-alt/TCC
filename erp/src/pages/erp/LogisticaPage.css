@@ -389,6 +389,15 @@
 
 /* ---------- mobile ---------- */
 @media (max-width: 768px) {
+  .logistica-page {
+    padding: var(--space-md);
+    height: auto;
+    min-height: calc(100vh - var(--topbar-height));
+  }
+  .logistica-header {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
   .logistica-content {
     flex-direction: column;
   }
@@ -399,8 +408,18 @@
   .zone-stats-row {
     flex-wrap: nowrap;
     overflow-x: auto;
+    padding-bottom: var(--space-sm);
   }
   .zone-stat-card {
     min-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logistica-page {
+    padding: var(--space-sm);
+  }
+  .logistica-header h1 {
+    font-size: var(--font-xl);
   }
 }

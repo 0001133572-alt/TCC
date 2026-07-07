@@ -26,6 +26,40 @@
 .modal--lg { width: 720px; }
 .modal--xl { width: 960px; }
 
+@media (max-width: 768px) {
+  .modal {
+    width: 95% !important;
+    max-height: 90vh;
+    margin: var(--space-sm);
+  }
+
+  .modal-header {
+    padding: var(--space-md);
+  }
+
+  .modal-body {
+    padding: var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    width: 100% !important;
+    max-height: 100vh;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .modal-header {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .modal-body {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
 .modal-header {
   display: flex;
   align-items: center;

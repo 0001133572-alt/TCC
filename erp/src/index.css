@@ -260,16 +260,28 @@ button:focus-visible {
 }
 
 /* === Responsividade === */
+@media (max-width: 1024px) {
+  :root {
+    --space-xl: 24px;
+    --space-2xl: 32px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 100%;
     --topbar-height: 56px;
+    --space-xl: 16px;
+    --space-2xl: 24px;
+    --space-3xl: 32px;
   }
 }
 
 @media (max-width: 480px) {
   :root {
-    --topbar-height: 56px;
+    --topbar-height: 52px;
+    --space-xl: 12px;
+    --space-2xl: 16px;
   }
 }
 

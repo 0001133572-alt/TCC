@@ -2,6 +2,7 @@
   overflow-x: auto;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {

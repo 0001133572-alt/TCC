@@ -24,3 +24,15 @@
 .config-save { margin-top: var(--space-lg); display: flex; justify-content: flex-end; }
 .save-btn { padding: 12px 32px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-size: var(--font-base); font-weight: 600; font-family: inherit; cursor: pointer; transition: all var(--transition-fast); }
 .save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+@media (max-width: 768px) {
+  .config-page { padding: var(--space-md); }
+  .config-section { padding: var(--space-md); }
+  .config-header h1 { font-size: var(--font-xl); }
+  .save-btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .config-page { padding: var(--space-sm); }
+  .config-header h1 { font-size: var(--font-lg); }
+}

@@ -455,6 +455,12 @@
    RESPONSIVIDADE
    ============================================ */
 
+@media (max-width: 1024px) {
+  .content-area {
+    padding: var(--space-md);
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;
@@ -490,6 +496,10 @@
   .topbar {
     padding: 0 var(--space-md);
   }
+
+  .content-area {
+    padding: var(--space-sm);
+  }
 }
 
 @media (max-width: 480px) {
@@ -498,16 +508,20 @@
   }
 
   .topbar {
-    height: 56px;
+    height: 52px;
     padding: 0 var(--space-sm);
   }
 
   .page-title {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .dropdown-menu {
     width: 220px;
     right: -10px;
+  }
+
+  .content-area {
+    padding: var(--space-xs);
   }
 }

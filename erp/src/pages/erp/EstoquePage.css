@@ -599,14 +599,35 @@
 }
 
 /* === Responsivo === */
+@media (max-width: 1024px) {
+  .estoque-table-wrapper {
+    overflow-x: auto;
+  }
+}
+
 @media (max-width: 768px) {
   .estoque-page {
     padding: var(--space-md);
   }
 
+  .estoque-header {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .estoque-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .estoque-search {
+    max-width: 100%;
+  }
+
   .estoque-table td,
   .estoque-table th {
     padding: 8px 10px;
+    font-size: var(--font-xs);
   }
 
   .actions-cell {
@@ -615,5 +636,15 @@
 
   .movement-date {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .estoque-page {
+    padding: var(--space-sm);
+  }
+
+  .estoque-header h1 {
+    font-size: var(--font-xl);
   }
 }
