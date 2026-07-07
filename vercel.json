@@ -1,9 +1,6 @@
 {
-  "buildCommand": "cd erp && npm install && npm run build",
-  "outputDirectory": "erp/dist",
-  "installCommand": "cd erp && npm install",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
